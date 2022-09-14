@@ -2,35 +2,33 @@ import storageApi from './storage';
 import throttle from 'lodash.throttle';
 
 const form = document.querySelector('.feedback-form');
-const email = form.querySelector('input[name="email"]');
-const message = form.querySelector('textarea[name="message"]');
 const STORAGE_KEY = 'feedback-form-state';
 loadPage();
 
-form.addEventListener('input', event => {
-  event.preventDefault();
-  const {
-    elements: { email, message },
-  } = event.currentTarget;
-  throttle(() => {
-    storageApi.save(STORAGE_KEY, {
-      email: email.value,
-      message: message.value,
-    });
-  }, 500)();
-});
+form.addEventListener(
+  'input',
+  throttle(event => {
+    let savedData = storageApi.load(STORAGE_KEY);
+    if (!savedData) {
+      savedData = {};
+    }
+    savedData[event.target.name] = event.target.value;
+    storageApi.save(STORAGE_KEY, savedData);
+  }, 500)
+);
 
 form.addEventListener('submit', event => {
   event.preventDefault();
+  console.log(storageApi.load(STORAGE_KEY));
   storageApi.remove(STORAGE_KEY);
-  console.log({ email: email.value, message: message.value });
-  email.value = '';
-  message.value = '';
+  form.reset();
 });
 
 function loadPage() {
-  if (storageApi.load(STORAGE_KEY)) {
-    email.value = storageApi.load(STORAGE_KEY).email;
-    message.value = storageApi.load(STORAGE_KEY).message;
+  const loadedData = storageApi.load(STORAGE_KEY);
+  if (loadedData) {
+    Object.entries(loadedData).forEach(([name, value]) => {
+      form.elements[name].value = value;
+    });
   }
 }

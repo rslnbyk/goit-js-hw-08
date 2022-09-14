@@ -15,5 +15,8 @@ player.on(
 );
 
 function loadPage() {
-  player.setCurrentTime(storageApi.load(STORAGE_KEY));
+  const savedTime = storageApi.load(STORAGE_KEY);
+  if (savedTime) {
+    player.setCurrentTime(storageApi.load(STORAGE_KEY));
+  }
 }
